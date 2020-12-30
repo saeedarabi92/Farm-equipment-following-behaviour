@@ -5,6 +5,8 @@
  '''
 
 import pandas as pd
+import datetime
+
 
 
 def dist_cal(x):
@@ -62,3 +64,27 @@ def cluster(filename, n_last_elements=1000):
     df.loc[~df.obj_ID.isin(l), 'obj_ID'] = -1
     df.loc[df.obj_ID.isin(l), 'obj_ID'] = 1
     return df
+
+
+def prepare_detections_for_model(file, df_raw_speed):
+    df_detection = cluster(file)
+    df_detection['datetime_time'] = [i.round('1s').time() for i in pd.date_range(min(df_raw_speed.datetime), max(df_raw_speed.datetime), len(df_detection))]    
+    return df_detection
+
+def prepare_speed_profiles_for_model(file):          
+    df_raw_speed = pd.read_csv(file)
+    df_raw_speed.columns = ['ST_unit', 'Latitude', 'Longitude', 'Date', 'Time_UTC', 'newDateTime', 'Speed_knots', 'Speed_MPH', 'Speed_mps', 'valid']
+    df_raw_speed['datetime'] = [datetime.datetime.strptime(str(i), '%H:%M:%S') for i in df_raw_speed.Time_UTC]
+    df_raw_speed['datetime_time'] = df_raw_speed.datetime.dt.time
+    return df_raw_speed
+
+def merge_speed_and_detection(df_detection, df_raw_speed, annotations, filename):
+    df_detection = pd.merge(df_detection,df_raw_speed[['datetime_time','Speed_MPH']],on='datetime_time', how='left')
+    df_detection.Speed_MPH.interpolate(inplace = True)
+    df_detection = df_detection[df_detection.obj_ID == 1]
+    df_detection['filename'] = filename
+    df_detection = pd.merge(df_detection,annotations[[
+        'filename','Type of vehicle','Type of road']], on='filename', how='left')
+    df_detection = df_detection[['frame_num', 'dist', 'center', 'datetime_time',
+                                'Speed_MPH', 'filename', 'Type of vehicle', 'Type of road']]
+    return df_detection
