@@ -88,3 +88,13 @@ def merge_speed_and_detection(df_detection, df_raw_speed, annotations, filename)
     df_detection = df_detection[['frame_num', 'dist', 'center', 'datetime_time',
                                 'Speed_MPH', 'filename', 'Type of vehicle', 'Type of road']]
     return df_detection
+
+def smooth_scatter(s,window):
+    y = s
+    N = window
+    if len(s)>0:
+        y_padded = np.pad(y, (N//2, N-1-N//2), mode='edge')
+        s_smooth = pd.Series(np.convolve(y_padded, np.ones((N,))/N, mode='valid'), index=s.index)                 
+    else:
+        print("len(series)=<0")
+    return s_smooth
