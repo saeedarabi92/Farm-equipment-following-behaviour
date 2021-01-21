@@ -5,8 +5,10 @@
 - [X] _VAN_ category excluded
 - [X] Day of week rearranged based on the UTC conversion
 - [X] Plotting CDFs of trajectories in python
-- [ ] Plotting CDFs of each trajectory in Tableau
+- [ ] Plotting CDFs of each trajectory in Tableau (It was too hard! I could not figure it out! Officially gave up)
+- [X]  Meeting with Ashirwad about the model.
+  - Meeting summery:
+    - Do not shrink your dataset to mean and std. One outlier will have a great influence on the results.
+    - One option could finding the outliers and remove them from the dataset. There is something called _Cook's_ distance which can be used to identify the outliers.
 - [ ] Finding appropriate statistical models. The response variables are **mean** and **std** of following distances. Also, random variable should be involved.
-- [ ] Schedule appointment with stat department to go over the available options of stat model.
-- [ ] Fitting random variable models on the data by treating **mean** and **std** as separate variables.
-- [ ] Preparing dataset of **mean**s and **std**s 
+- [x] Schedule appointment with stat department to go over the available options of stat model.
