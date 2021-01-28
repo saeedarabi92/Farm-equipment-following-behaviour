@@ -1,3 +1,9 @@
+'''
+ # @ Author: Saeed Arabi
+ # @ Create Time: 2021-01-27 13:33:02
+ # @ Email: arabi@iastate.edu
+ '''
+
 from utils.helper import generate_valid_unvalid_data, prepare_df, check_valid, dist_cal, generate_vid_csv_data, get_frame
 import glob
 import pandas as pd
