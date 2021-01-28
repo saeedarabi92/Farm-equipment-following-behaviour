@@ -26,7 +26,7 @@
 - [x] Schedule appointment with stat department to go over the available options of stat model.
 ------
 ### Update on 01/22/2021
-- [ ] Validity check of the _fall 2018_ . (Pictures and initial validation check)
+- [x] Validity check of the _fall 2018_ . (Pictures and initial validation check)
     - location in box: SaferTrek/Fall 2018 SaferTrek Roadway Data/Chunks based on Frame Missing from Koray Hard Drive
 - [ ] Tableau visualization of medians and CDFs.
     - I set meeting with Archana.
