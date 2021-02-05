@@ -9,8 +9,6 @@
    *  `cd myproject`
    *  `git clone https://github.com/saeedarabi92/Farm-equipment-following-behaviour.git`
 2. Run `pip install -e .`
-- [ ] steps for preprocessing/ filtering the csv files.
-  
 
 ### TODO list:
 - [X] Convert UTC time to local " _US/Central_ "
@@ -30,9 +28,16 @@
     - location in box: SaferTrek/Fall 2018 SaferTrek Roadway Data/Chunks based on Frame Missing from Koray Hard Drive
 - [x] Tableau visualization of medians and CDFs.
     - I set meeting with Archana.
-- [ ] Include color-coded trajectories with spline overlay.
 ------
 ### Update on 01/29/2021
 - [ ] Include only one following phase per trajectory. The one which is closest to the end of trajectory.
 - [ ] Use **median** instead of mean and std for the model.
+- [ ] 
 -----
+### Update on 02/05/2021
+- [ ]  Consider only the last following phase for each trajectory.
+- [ ]  Use two different distance estimation model for car and pickup truck.
+- [ ]  Put SUV in the pickup truck category.
+- [ ]  marginal effects ---> effect of one variable on the model
+- [ ]  Add more data.
+- [ ]  Use spline information for model fitting.
