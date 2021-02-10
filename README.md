@@ -30,14 +30,14 @@
     - I set meeting with Archana.
 ------
 ### Update on 01/29/2021
-- [ ] Include only one following phase per trajectory. The one which is closest to the end of trajectory.
+- [x] Include only one following phase per trajectory. The one which is closest to the end of trajectory.
 - [ ] Use **median** instead of mean and std for the model.
 - [ ] 
 -----
 ### Update on 02/05/2021
-- [ ]  Consider only the last following phase for each trajectory.
+- [x]  Consider only the last following phase for each trajectory.
 - [ ]  Use two different distance estimation model for car and pickup truck.
-- [ ]  Put SUV in the pickup truck category.
+- [x]  Put SUV in the pickup truck category.
 - [ ]  marginal effects ---> effect of one variable on the model
 - [ ]  Add more data.
-- [ ]  Use spline information for model fitting.
+- [X]  Use spline information for model fitting.
