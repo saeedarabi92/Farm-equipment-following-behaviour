@@ -12,18 +12,51 @@ from scipy.stats import norm
 from scipy.interpolate import LSQUnivariateSpline
 import matplotlib.pyplot as plt
 import cv2
+import more_itertools as mit
+import os
+import matplotlib.font_manager as font_manager
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+if "setup_text_plots" not in globals():
+    from astroML.plotting import setup_text_plots
+setup_text_plots(fontsize=8, usetex=True)
+
+
+dirFile = os.path.dirname(os.path.join('/Users/saeedarabi/Box/SaferTrek/Data_analysis/2019/CSV/Manuscript draft',
+                                       'paper_plots.ipynb'))
+
+fontname = 'Times New Roman'
+
+
+
+
+def find_last_following_phase(dataset):
+    dataset_new = pd.DataFrame()
+    groups = dataset.groupby('filename')
+    for name, group in groups:
+        group = group[group.phases == 'Following']
+        gp = [list(i) for i in mit.consecutive_groups(np.sort(group.index.values))]
+        group = group.loc[group.index.isin(gp[-1])]
+        dataset_new = pd.concat([dataset_new,group])
+    return dataset_new
 
 def dist_cal(x):
     # calculate distance base on heigth of bbox(x)
     return 851 * 1.6825 / x
 
+def dist_cal_by_model(x, y):
+    if y == 'SEDAN':
+        return 851 * 1.445 / x
+    else: #for pickup truck
+        return 934 * 1.920 / x
+    
 
 def prepare_df(filename, print_log=False):
     # prepare dataset for each detection
     if print_log:
         print('Loading file {}'.format(filename))
     df = pd.read_csv(filename)
+    # UODATE THIS FOR DEEP MODEL     
     df['dist'] = df.H.apply(dist_cal)
     df = df[df.class_ID == 0]
     df['C_x'] = df.L + .5*df.W
@@ -45,6 +78,8 @@ def get_first_and_last_value(df, col):
 def cluster(filename, n_last_elements=1000):
     df = prepare_df(filename)
     df = df.tail(n_last_elements)
+    if len(df) == 0:
+            return df
     unique_ID = df.obj_ID.unique()
     for i in range(len(unique_ID)):
         df_mode = find_ID_mode(df)
@@ -90,14 +125,23 @@ def prepare_speed_profiles_for_model(file):
 
 def merge_speed_and_detection(df_detection, df_raw_speed, annotations, filename):
     df_detection = pd.merge(df_detection, df_raw_speed[[
-                            'datetime_time', 'Speed_MPH']], on='datetime_time', how='left')
+                            'datetime_time', 'Speed_MPH', 'Latitude', 'Longitude']], on='datetime_time', how='left')
     df_detection.Speed_MPH.interpolate(inplace=True)
-    df_detection = df_detection[df_detection.obj_ID == 1]
+    df_detection.Latitude.interpolate(inplace=True)
+    df_detection.Longitude.interpolate(inplace=True)
+    
+#     print('df_detection: ', len(df_detection))
+#     print(df_detection)
+#     df_detection = df_detection[df_detection.obj_ID == 1]
     df_detection['filename'] = filename
+    
     df_detection = pd.merge(df_detection, annotations[[
         'filename', 'Type of vehicle', 'Type of road']], on='filename', how='left')
-    df_detection = df_detection[['frame_num', 'dist', 'center', 'datetime_time',
-                                 'Speed_MPH', 'filename', 'Type of vehicle', 'Type of road']]
+#     print(df_detection)
+#     print('df_detection: ', len(df_detection))
+    df_detection = df_detection[['frame_num', 'dist', 'obj_ID', 'center', 'H', 'datetime_time',
+                                 'Speed_MPH', 'filename', 'Type of vehicle', 'Type of road', 'Latitude', 'Longitude']]
+    
     return df_detection
 
 
@@ -366,11 +410,21 @@ def detect_phases(data, plot):
     x = np.arange(len(data))/30
     y = data
     t = [i[0]/30 for i in segments]
-    spl = LSQUnivariateSpline(x, y, t[1:], k=3)
-    fig, ax = plt.subplots(1, 1, figsize=(12, 4))
+#     print(x)
+#     print(y)
+#     print(t)
+    try:
+        spl = LSQUnivariateSpline(x, y, t[1:], k=3)
+#     print("spl: ", spl)
+    except:
+        return 0, 0, 0, 0
     if plot:
+        fig, ax = plt.subplots(1, 1, figsize=(12, 4))
         draw_segments(avg_dist, segments, ax, spl)
-        draw_vel(avg_dist, segments, ax, spl)
+        # draw_vel(avg_dist, segments, ax, spl)
+        ax.plot(np.arange(len(data))/30,
+                data, 'go', ms=5, alpha=.05)
+
     vel, acc, classes = clasify_segments(avg_dist, segments, spl)
     classes, segments = merge_seg(classes, segments)
 #     print("classes_1: ", classes)
@@ -389,8 +443,8 @@ def detect_phases(data, plot):
 
     p = pd.Series([None]*len(data))
     for name, segment in zip(classes, segments):
-        print("name", name)
-        print("seg", segment)
+#         print("name", name)
+#         print("seg", segment)
         if name == 'Approaching':
             p.iloc[segment[0]:segment[2]] = 'Approaching'
         elif name == 'Following':
@@ -399,7 +453,7 @@ def detect_phases(data, plot):
             p.iloc[segment[0]:segment[2]] = 'flying pass'
         else:
             p.iloc[segment[0]:segment[2]] = 'Backing off'
-    return p, classes, segments
+    return p, classes, segments, spl(np.arange(len(data))/30)
 
 
 def generate_valid_unvalid_data(data, log=False):
@@ -476,3 +530,57 @@ def get_frame(vid, fn):
     cap.set(1, fn)
     _, frame = cap.read()
     return frame
+
+
+
+def plot_clustered(filename):
+    # print(filename)
+    df = (filename)
+    # print(df)
+    fig = plt.figure(figsize=(6, 3))
+    ax = plt.subplot(1,1,1)
+    df = cluster(filename)
+    groups = df.groupby('obj_ID')
+
+    for name, group in groups:
+        if name == 1:
+            label = "Main vehicle"
+            c = 'k'
+        else:
+            label = "Other vehicles"
+            c = 'r'
+        ax.plot(group['frame_num']/30, group['dist'], marker='o',mec=c, mfc='none', linestyle='', ms=5, alpha=.2, label=label)    
+        plt.xlabel('Time (s)', fontsize=10,style = 'italic', weight='bold', fontname=fontname)
+        plt.ylabel('Distance (m)', fontsize=10,style = 'italic', weight='bold', fontname=fontname)
+        ax.grid(b=True, which='major', alpha=.1, color='k', linestyle='--')
+        plt.xticks(weight = 'bold', style = 'italic', fontname = fontname, fontsize=8)
+        plt.yticks(weight = 'bold', style = 'italic', fontname = fontname, fontsize=8)
+#         ax.spines['right'].set_visible(False)
+#         ax.spines['top'].set_visible(False)
+        font = font_manager.FontProperties(family = fontname, style='italic', size=8)
+    plt.legend(loc="upper center", prop=font)
+#     plt.savefig(os.path.join(dirFile,'plot_clustered_dist.pdf'),dpi=300)
+
+#     fig = plt.figure(figsize=(6, 3))
+#     ax = plt.subplot(1,1,1)
+
+#     for name, group in groups:
+#         if name == 1:
+#             label = "Main vehicle"
+#             c = 'k'
+#         else:
+#             label = "Other vehicles"
+#             c = 'r'
+#         ax.plot(group['frame_num']/30, group['center'], marker='o', mec=c, mfc='none', linestyle='', ms=5, alpha=.2, label=label )    
+#         plt.xlabel('Time (s)', fontsize=10,style = 'italic', weight='bold', fontname=fontname)
+#         plt.ylabel(r'$\vec{||bbox\ center||}$', fontsize=10,style = 'italic', weight='bold', fontname=fontname)
+#         ax.grid(b=True, which='major', alpha=.1, color='k', linestyle='--')
+#         plt.xticks(weight = 'bold', style = 'italic', fontname = fontname, fontsize=8)
+#         plt.yticks(weight = 'bold', style = 'italic', fontname = fontname, fontsize=8)
+# #         ax.spines['right'].set_visible(False)
+# #         ax.spines['top'].set_visible(False)
+#         font = font_manager.FontProperties(family = fontname, style='italic', size=8)
+#     plt.legend(loc="upper center", prop=font)
+# #     plt.savefig(os.path.join(dirFile,'plot_clustered_center.pdf'),dpi=300)
+
+
