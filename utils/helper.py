@@ -168,6 +168,14 @@ def slidingwindowsegment(sequence, create_segment, compute_error, max_error, seq
     compute_error: a function of two argments (sequence, segment) that returns the error from fitting the specified line segment to the sequence data
     max_error: the maximum allowable line segment fitting error
     """
+    
+    #previously:
+    # x = [0,1,2]
+    # y = [1,2,3]
+    #now:
+    # x = [0,2,5]
+    # y = [1,2,3]
+  
     if not seq_range:
         seq_range = (0, len(sequence))
     start = seq_range[0]
