@@ -412,7 +412,7 @@ def draw_acc(data, segments, ax, spl):
 
 def detect_phases(data, plot):
     avg_dist = smooth_scatter(data, 30)
-    segments = slidingwindowsegment(avg_dist, poly_regression, poly_sumsquared_error, max_error=10, min_range=30)
+    segments = slidingwindowsegment(avg_dist, poly_regression, poly_sumsquared_error, max_error=10, min_range=30) #You need to add sequence_range ro this function (probably!) sequence_range = data['frame_num'] - data['frame_num'][0]
     segments = update_segments(avg_dist, segments, min_range=30)
     x = np.arange(len(data))/30.    #Time change 101; You neeed to change this line to have more accuare x value! (data['frame_num'] - data['frame_num'][0]) / 30
     y = data
