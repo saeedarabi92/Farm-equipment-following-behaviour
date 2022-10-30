@@ -407,7 +407,7 @@ def detect_phases(data, plot):
     segments = slidingwindowsegment(
         avg_dist, poly_regression, poly_sumsquared_error, max_error=10, min_range=30)
     segments = update_segments(avg_dist, segments, min_range=30)
-    x = np.arange(len(data))/30
+    x = np.arange(len(data))/30.    #You neeed to change this line to have more accuare x value! (data['frame_num'] - data['frame_num'][0]) / 30
     y = data
     t = [i[0]/30 for i in segments]
 #     print(x)
